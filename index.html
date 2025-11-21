@@ -478,8 +478,10 @@
         
         const defaultColor = "#C7CEEA";
 
-        let pickedIds = []; 
-        let excludedIds = new Set(); 
+        const storedPicked = localStorage.getItem('mrt_picked');
+        let pickedIds = storedPicked ? JSON.parse(storedPicked) : []; 
+        const storedExcluded = localStorage.getItem('mrt_excluded');
+        let excludedIds = storedExcluded ? new Set(JSON.parse(storedExcluded)) : new Set(); 
         let isRunning = false;
         let intervalId = null;
 
@@ -492,6 +494,11 @@
         const leverStructure = document.getElementById('leverStructure');
         const settingsPanel = document.getElementById('settingsPanel');
         const toggleIcon = document.getElementById('toggleIcon');
+
+        function saveProgress() {
+            localStorage.setItem('mrt_picked', JSON.stringify(pickedIds));
+            localStorage.setItem('mrt_excluded', JSON.stringify(Array.from(excludedIds)));
+        }
 
         function init() {
             sortData(jsonData); 
@@ -588,6 +595,7 @@
                 unpickedItems.forEach(item => excludedIds.delete(item.id));
             }
             
+            saveProgress();
             renderSettings();
         }
 
@@ -600,6 +608,7 @@
                 excludedIds.add(id);
                 label.classList.remove('checked');
             }
+            saveProgress();
             renderSettings();
         }
 
@@ -641,6 +650,7 @@
             const winner = pool[winnerIndex];
             
             pickedIds.push(winner.id);
+            saveProgress();
             
             const color = mrtColors[winner.line] || defaultColor;
             displayEl.innerHTML = `<span style="color:${color}">${winner.line}</span> - ${winner.name}`;
@@ -657,6 +667,7 @@
         function resetLottery() {
             if(confirm("Reset all picked stations?")) {
                 pickedIds = [];
+                saveProgress();
                 displayEl.innerText = "Ready";
                 renderGrid();
                 renderSettings();
